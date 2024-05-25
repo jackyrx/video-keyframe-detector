@@ -10,11 +10,13 @@ def main():
     parser.add_argument('-t','--Thres', help='Threshold of the image difference', default=0.3)
     parser.add_argument('-p', '--plotMetrics', help='print verbose', action='store_true')
     parser.add_argument('-v', '--verbose', help='print verbose', action='store_true')
-
+    parser.add_argument('-a', '--draw_all_frames', help='draw all frames', action='store_true')
+    
     args = parser.parse_args()
 
 
-    keyframeDetection(args.source, args.dest, float(args.Thres), args.plotMetrics, args.verbose)
+    keyframeDetection(args.source, args.dest, float(args.Thres), 
+                      args.plotMetrics, args.verbose, args.draw_all_frames)
 
 if __name__ == '__main__':
     main()

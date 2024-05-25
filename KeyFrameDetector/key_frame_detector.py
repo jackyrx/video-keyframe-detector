@@ -57,7 +57,8 @@ def create_grayframe_grid(grayframes, keyframe_data, num_cols=3):
     
     return grid_image
 
-def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
+
+def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False, draw_all_frames=False):
     keyframePath = dest + '/keyFrames'
     imageGridsPath = dest + '/imageGrids'
     csvPath = dest + '/csvFile'
@@ -129,21 +130,45 @@ def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
     keyframe_images = []
     keyframe_grayframes = []
     keyframe_data = []
-    for x in indices:
-        cv2.imwrite(os.path.join(keyframePath, 'keyframe' + str(cnt) + '.jpg'), full_color[x])
-        keyframe_images.append(full_color[x])
-        keyframe_grayframes.append(images[x])
-        log_message = 'keyframe ' + str(cnt) + ' happened at ' + str(timeSpans[x]) + ' sec.'
-        if verbose:
-            print(log_message)
+    
+    if draw_all_frames:
+        for i in range(length):
+            if i in indices:
+                cv2.imwrite(os.path.join(keyframePath, 'keyframe' + str(cnt) + '.jpg'), full_color[i])
+                keyframe_images.append(full_color[i])
+                keyframe_grayframes.append(images[i])
+                log_message = 'keyframe ' + str(cnt) + ' happened at ' + str(timeSpans[i]) + ' sec.'
+                if verbose:
+                    print(log_message)
 
-        # Write the keyframe data to the CSV file
-        keyframe_info = (cnt, lstfrm[x], timeSpans[x], lstdiffMag[x])
-        keyframe_data.append(keyframe_info)
-        with open(path2file, 'a', newline='') as csvFile:
-            writer = csv.writer(csvFile)
-            writer.writerow(keyframe_info)
-        cnt += 1
+                keyframe_info = (cnt, lstfrm[i], timeSpans[i], lstdiffMag[i])
+                keyframe_data.append(keyframe_info)
+                with open(path2file, 'a', newline='') as csvFile:
+                    writer = csv.writer(csvFile)
+                    writer.writerow(keyframe_info)
+                cnt += 1
+            else:
+                cv2.imwrite(os.path.join(keyframePath, 'frame' + str(i) + '.jpg'), full_color[i])
+                keyframe_images.append(full_color[i])
+                keyframe_grayframes.append(images[i])
+                
+                keyframe_info = (-1, lstfrm[i], timeSpans[i], lstdiffMag[i])
+                keyframe_data.append(keyframe_info)
+    else:
+        for x in indices:
+            cv2.imwrite(os.path.join(keyframePath, 'keyframe' + str(cnt) + '.jpg'), full_color[x])
+            keyframe_images.append(full_color[x])
+            keyframe_grayframes.append(images[x])
+            log_message = 'keyframe ' + str(cnt) + ' happened at ' + str(timeSpans[x]) + ' sec.'
+            if verbose:
+                print(log_message)
+
+            keyframe_info = (cnt, lstfrm[x], timeSpans[x], lstdiffMag[x])
+            keyframe_data.append(keyframe_info)
+            with open(path2file, 'a', newline='') as csvFile:
+                writer = csv.writer(csvFile)
+                writer.writerow(keyframe_info)
+            cnt += 1
 
     # Create image grid for color keyframes
     num_cols = 3  # Specify the desired number of columns (3 or 4)
@@ -155,4 +180,3 @@ def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
     cv2.imwrite(os.path.join(imageGridsPath, 'grayframe_grid.jpg'), grayframe_grid)
 
     cv2.destroyAllWindows()
-

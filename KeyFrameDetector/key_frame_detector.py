@@ -7,52 +7,50 @@ import peakutils
 from tqdm import tqdm
 from KeyFrameDetector.utils import convert_frame_to_grayscale, prepare_dirs, plot_metrics
 
-def create_image_grid(images, keyframe_data, grid_size):
+def create_image_grid(images, keyframe_data, num_cols=3):
     num_images = len(images)
-    grid_rows = grid_size[0]
-    grid_cols = grid_size[1]
+    num_rows = (num_images + num_cols - 1) // num_cols
     image_height, image_width, _ = images[0].shape
     
-    grid_image = np.zeros((grid_rows * image_height, grid_cols * image_width, 3), dtype=np.uint8)
+    grid_image = np.zeros((num_rows * image_height, num_cols * image_width, 3), dtype=np.uint8)
+    
+    max_diff_magnitude = max(keyframe_data, key=lambda x: x[3])[3]
     
     for i in range(num_images):
-        if i >= grid_rows * grid_cols:
-            break
-        
-        row = i // grid_cols
-        col = i % grid_cols
+        row = i // num_cols
+        col = i % num_cols
         
         image = images[i]
         keyframe_number, frame_number, timestamp, diff_magnitude = keyframe_data[i]
+        diff_percentage = (diff_magnitude / max_diff_magnitude) * 100
         
-        # Add keyframe information as text
-        text = f"Keyframe: {keyframe_number} | Frame: {frame_number} | Time: {timestamp:.2f}s | Diff: {diff_magnitude}"
+        # Add keyframe information and difference magnitude as text
+        text = f"Keyframe: {keyframe_number} | Frame: {frame_number} | Time: {timestamp:.2f}s | Diff: {diff_magnitude} ({diff_percentage:.2f}%)"
         cv2.putText(image, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
         
         grid_image[row*image_height:(row+1)*image_height, col*image_width:(col+1)*image_width] = image
     
     return grid_image
 
-def create_grayframe_grid(grayframes, keyframe_data, grid_size):
+def create_grayframe_grid(grayframes, keyframe_data, num_cols=3):
     num_images = len(grayframes)
-    grid_rows = grid_size[0]
-    grid_cols = grid_size[1]
+    num_rows = (num_images + num_cols - 1) // num_cols
     image_height, image_width = grayframes[0].shape
     
-    grid_image = np.zeros((grid_rows * image_height, grid_cols * image_width), dtype=np.uint8)
+    grid_image = np.zeros((num_rows * image_height, num_cols * image_width), dtype=np.uint8)
+    
+    max_diff_magnitude = max(keyframe_data, key=lambda x: x[3])[3]
     
     for i in range(num_images):
-        if i >= grid_rows * grid_cols:
-            break
-        
-        row = i // grid_cols
-        col = i % grid_cols
+        row = i // num_cols
+        col = i % num_cols
         
         grayframe = grayframes[i]
         keyframe_number, frame_number, timestamp, diff_magnitude = keyframe_data[i]
+        diff_percentage = (diff_magnitude / max_diff_magnitude) * 100
         
-        # Add keyframe information as text
-        text = f"Keyframe: {keyframe_number} | Frame: {frame_number} | Time: {timestamp:.2f}s | Diff: {diff_magnitude}"
+        # Add keyframe information and difference magnitude as text
+        text = f"Keyframe: {keyframe_number} | Frame: {frame_number} | Time: {timestamp:.2f}s | Diff: {diff_magnitude} ({diff_percentage:.2f}%)"
         cv2.putText(grayframe, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
         
         grid_image[row*image_height:(row+1)*image_height, col*image_width:(col+1)*image_width] = grayframe
@@ -148,13 +146,13 @@ def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
         cnt += 1
 
     # Create image grid for color keyframes
-    grid_size = (3, 3)  # Specify the grid size (rows, columns)
-    image_grid = create_image_grid(keyframe_images, keyframe_data, grid_size)
+    num_cols = 3  # Specify the desired number of columns (3 or 4)
+    image_grid = create_image_grid(keyframe_images, keyframe_data, num_cols)
     cv2.imwrite(os.path.join(imageGridsPath, 'image_grid.jpg'), image_grid)
 
     # Create image grid for grayframe keyframes
-    grayframe_grid = create_grayframe_grid(keyframe_grayframes, keyframe_data, grid_size)
+    grayframe_grid = create_grayframe_grid(keyframe_grayframes, keyframe_data, num_cols)
     cv2.imwrite(os.path.join(imageGridsPath, 'grayframe_grid.jpg'), grayframe_grid)
 
-
     cv2.destroyAllWindows()
+

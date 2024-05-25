@@ -7,7 +7,7 @@ import peakutils
 from tqdm import tqdm
 from KeyFrameDetector.utils import convert_frame_to_grayscale, prepare_dirs, plot_metrics
 
-def create_image_grid(images, grid_size):
+def create_image_grid(images, keyframe_data, grid_size):
     num_images = len(images)
     grid_rows = grid_size[0]
     grid_cols = grid_size[1]
@@ -23,7 +23,39 @@ def create_image_grid(images, grid_size):
         col = i % grid_cols
         
         image = images[i]
+        keyframe_number, frame_number, timestamp, diff_magnitude = keyframe_data[i]
+        
+        # Add keyframe information as text
+        text = f"Keyframe: {keyframe_number} | Frame: {frame_number} | Time: {timestamp:.2f}s | Diff: {diff_magnitude}"
+        cv2.putText(image, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+        
         grid_image[row*image_height:(row+1)*image_height, col*image_width:(col+1)*image_width] = image
+    
+    return grid_image
+
+def create_grayframe_grid(grayframes, keyframe_data, grid_size):
+    num_images = len(grayframes)
+    grid_rows = grid_size[0]
+    grid_cols = grid_size[1]
+    image_height, image_width = grayframes[0].shape
+    
+    grid_image = np.zeros((grid_rows * image_height, grid_cols * image_width), dtype=np.uint8)
+    
+    for i in range(num_images):
+        if i >= grid_rows * grid_cols:
+            break
+        
+        row = i // grid_cols
+        col = i % grid_cols
+        
+        grayframe = grayframes[i]
+        keyframe_number, frame_number, timestamp, diff_magnitude = keyframe_data[i]
+        
+        # Add keyframe information as text
+        text = f"Keyframe: {keyframe_number} | Frame: {frame_number} | Time: {timestamp:.2f}s | Diff: {diff_magnitude}"
+        cv2.putText(grayframe, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+        
+        grid_image[row*image_height:(row+1)*image_height, col*image_width:(col+1)*image_width] = grayframe
     
     return grid_image
 
@@ -94,26 +126,35 @@ def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
     with open(path2file, 'w', newline='') as csvFile:
         writer = csv.writer(csvFile)
         writer.writerow(csv_columns)
-
+        
     cnt = 1
     keyframe_images = []
+    keyframe_grayframes = []
+    keyframe_data = []
     for x in indices:
         cv2.imwrite(os.path.join(keyframePath, 'keyframe' + str(cnt) + '.jpg'), full_color[x])
         keyframe_images.append(full_color[x])
+        keyframe_grayframes.append(images[x])
         log_message = 'keyframe ' + str(cnt) + ' happened at ' + str(timeSpans[x]) + ' sec.'
         if verbose:
             print(log_message)
 
         # Write the keyframe data to the CSV file
-        keyframe_data = [cnt, lstfrm[x], timeSpans[x], lstdiffMag[x]]
+        keyframe_info = (cnt, lstfrm[x], timeSpans[x], lstdiffMag[x])
+        keyframe_data.append(keyframe_info)
         with open(path2file, 'a', newline='') as csvFile:
             writer = csv.writer(csvFile)
-            writer.writerow(keyframe_data)
+            writer.writerow(keyframe_info)
         cnt += 1
 
-    # Create image grid
+    # Create image grid for color keyframes
     grid_size = (3, 3)  # Specify the grid size (rows, columns)
-    image_grid = create_image_grid(keyframe_images, grid_size)
+    image_grid = create_image_grid(keyframe_images, keyframe_data, grid_size)
     cv2.imwrite(os.path.join(imageGridsPath, 'image_grid.jpg'), image_grid)
+
+    # Create image grid for grayframe keyframes
+    grayframe_grid = create_grayframe_grid(keyframe_grayframes, keyframe_data, grid_size)
+    cv2.imwrite(os.path.join(imageGridsPath, 'grayframe_grid.jpg'), grayframe_grid)
+
 
     cv2.destroyAllWindows()

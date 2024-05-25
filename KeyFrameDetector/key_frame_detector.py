@@ -66,6 +66,7 @@ def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
 
     # Plot to monitor the selected keyframe
     if plotMetrics:
+        print('Plotting metrics...')
         plot_metrics(indices, lstfrm, lstdiffMag, y)
 
     # Initialize the CSV file with column names

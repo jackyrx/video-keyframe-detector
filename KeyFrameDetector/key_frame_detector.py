@@ -7,6 +7,26 @@ import peakutils
 from tqdm import tqdm
 from KeyFrameDetector.utils import convert_frame_to_grayscale, prepare_dirs, plot_metrics
 
+def create_image_grid(images, grid_size):
+    num_images = len(images)
+    grid_rows = grid_size[0]
+    grid_cols = grid_size[1]
+    image_height, image_width, _ = images[0].shape
+    
+    grid_image = np.zeros((grid_rows * image_height, grid_cols * image_width, 3), dtype=np.uint8)
+    
+    for i in range(num_images):
+        if i >= grid_rows * grid_cols:
+            break
+        
+        row = i // grid_cols
+        col = i % grid_cols
+        
+        image = images[i]
+        grid_image[row*image_height:(row+1)*image_height, col*image_width:(col+1)*image_width] = image
+    
+    return grid_image
+
 def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
     keyframePath = dest + '/keyFrames'
     imageGridsPath = dest + '/imageGrids'
@@ -76,8 +96,10 @@ def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
         writer.writerow(csv_columns)
 
     cnt = 1
+    keyframe_images = []
     for x in indices:
         cv2.imwrite(os.path.join(keyframePath, 'keyframe' + str(cnt) + '.jpg'), full_color[x])
+        keyframe_images.append(full_color[x])
         log_message = 'keyframe ' + str(cnt) + ' happened at ' + str(timeSpans[x]) + ' sec.'
         if verbose:
             print(log_message)
@@ -88,5 +110,10 @@ def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
             writer = csv.writer(csvFile)
             writer.writerow(keyframe_data)
         cnt += 1
+
+    # Create image grid
+    grid_size = (3, 3)  # Specify the grid size (rows, columns)
+    image_grid = create_image_grid(keyframe_images, grid_size)
+    cv2.imwrite(os.path.join(imageGridsPath, 'image_grid.jpg'), image_grid)
 
     cv2.destroyAllWindows()

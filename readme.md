@@ -73,7 +73,7 @@ During the keyframe detection process, a progress bar will be displayed to track
 ## Additional Features
 
 - `--plotMetrics`: Optional flag to plot metrics for monitoring the selected keyframes.
-- 
+
 
 
 

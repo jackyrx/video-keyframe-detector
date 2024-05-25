@@ -4,6 +4,7 @@ import csv
 import numpy as np
 import time
 import peakutils
+from tqdm import tqdm
 from KeyFrameDetector.utils import convert_frame_to_grayscale, prepare_dirs, plot_metrics
 
 def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
@@ -28,6 +29,9 @@ def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
     lastFrame = None
     Start_time = time.process_time()
 
+    # Create a progress bar
+    progress_bar = tqdm(total=length, unit='frames', desc='Processing')
+
     # Read until video is completed
     for i in range(length):
         ret, frame = cap.read()
@@ -50,7 +54,12 @@ def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
         timeSpans.append(time_Span)
         lastFrame = blur_gray
 
+        # Update the progress bar
+        progress_bar.update(1)
+
     cap.release()
+    progress_bar.close()
+
     y = np.array(lstdiffMag)
     base = peakutils.baseline(y, 2)
     indices = peakutils.indexes(y - base, Thres, min_dist=1)
@@ -80,4 +89,3 @@ def keyframeDetection(source, dest, Thres, plotMetrics=False, verbose=False):
         cnt += 1
 
     cv2.destroyAllWindows()
-    

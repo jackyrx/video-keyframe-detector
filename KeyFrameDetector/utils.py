@@ -51,7 +51,7 @@ def prepare_dirs(keyframePath, imageGridsPath, csvPath):
         os.makedirs(csvPath)
 
 
-def plot_metrics(indices, lstfrm, lstdiffMag):
+def plot_metrics(indices, lstfrm, lstdiffMag, y):
     plt.plot(indices, y[indices], "x")
     l = plt.plot(lstfrm, lstdiffMag, 'r-')
     plt.xlabel('frames')

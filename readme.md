@@ -14,19 +14,6 @@ A `Key Frame` is a location on a video timeline which marks the beginning or end
 </p>
 <br/>
 
-## Installation
-
-**Requirements**
-
-- python3
-- numpy
-- opencv
-- peakutils
-- matplotlib
-- PIL
-  
-<hr />
-```
 # Video Keyframe Detector
 
 A Key Frame is a location on a video timeline which marks the beginning or end of a smooth transition throughout the frames. Key Frame Detector tries to look for the most representative and significant frames that can describe the movement or main events in a video using peakutils peak detection functions.
@@ -86,8 +73,7 @@ During the keyframe detection process, a progress bar will be displayed to track
 ## Additional Features
 
 - `--plotMetrics`: Optional flag to plot metrics for monitoring the selected keyframes.
-```
-
+- 
 
 
 
